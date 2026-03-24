@@ -3,6 +3,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
+// JWT Secret por defecto si no está en variables de entorno
+const JWT_SECRET = process.env.JWT_SECRET || 'energy-secret-key-2024';
+
 // Registro
 router.post('/register', async (req, res) => {
   try {
@@ -36,7 +39,7 @@ router.post('/register', async (req, res) => {
     global.saveUsers(); // Guardar automáticamente
     
     // Crear token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET);
     
     console.log('✅ Usuario registrado:', user.name);
     
@@ -78,7 +81,7 @@ router.post('/login', async (req, res) => {
     }
     
     // Crear token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET);
     
     console.log('✅ Usuario logueado:', user.name);
     
