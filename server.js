@@ -87,6 +87,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/chats', require('./routes/chats'));
 app.use('/api/catalog', require('./routes/catalog'));
+app.use('/api/sales-groups', require('./routes/salesGroups'));
 
 // Socket.io para chat en tiempo real
 const connectedUsers = new Map(); // Rastrear usuarios conectados
