@@ -13,9 +13,6 @@ router.get('/:userId', (req, res) => {
     
     // Agregar información de los participantes, último mensaje y mensajes no leídos
     const chatsWithDetails = userChats.map(chat => {
-      const otherParticipant = chat.participants.find(p => p !== userId);
-      const otherUser = global.users.find(u => u.id === otherParticipant);
-      
       // Obtener último mensaje
       const chatMessages = global.messages
         .filter(m => m.chatId === chat.id)
@@ -28,8 +25,32 @@ router.get('/:userId', (req, res) => {
         m.read === false
       ).length;
       
+      // Si es un grupo de venta
+      if (chat.type === 'salesGroup') {
+        return {
+          id: chat.id,
+          type: 'salesGroup',
+          name: chat.name,
+          description: chat.description,
+          businessType: chat.businessType,
+          currency: chat.currency,
+          participants: chat.participants,
+          admins: chat.admins,
+          salesGroupId: chat.salesGroupId,
+          lastMessage: chatMessages[0] || null,
+          unreadCount: unreadCount,
+          isPinned: chat.isPinned || false,
+          createdAt: chat.createdAt
+        };
+      }
+      
+      // Si es un chat individual
+      const otherParticipant = chat.participants.find(p => p !== userId);
+      const otherUser = global.users.find(u => u.id === otherParticipant);
+      
       return {
         id: chat.id,
+        type: 'individual',
         otherUser: otherUser ? {
           id: otherUser.id,
           name: otherUser.name,
