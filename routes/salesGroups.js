@@ -126,12 +126,11 @@ router.get('/public/:userId', async (req, res) => {
     const { userId } = req.params;
     const salesGroupsData = await readSalesGroups();
 
-    // Solo mostrar grupos donde el usuario es creador y tiene más de 1 miembro
-    // O grupos que están marcados como públicos
+    // Mostrar TODOS los grupos donde el usuario es creador y están activos
+    // Otros usuarios pueden ver estos grupos para unirse
     const publicGroups = salesGroupsData.groups.filter(group => 
       group.creatorId === userId && 
-      group.isActive && 
-      (group.members.length > 1 || group.isPublic === true)
+      group.isActive
     );
 
     // Devolver información básica sin datos sensibles
