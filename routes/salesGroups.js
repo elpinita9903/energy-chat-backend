@@ -120,6 +120,39 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
+// Obtener grupos públicos de un usuario (para que otros los vean)
+router.get('/public/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const salesGroupsData = await readSalesGroups();
+
+    // Solo mostrar grupos donde el usuario es creador y tiene más de 1 miembro
+    // O grupos que están marcados como públicos
+    const publicGroups = salesGroupsData.groups.filter(group => 
+      group.creatorId === userId && 
+      group.isActive && 
+      (group.members.length > 1 || group.isPublic === true)
+    );
+
+    // Devolver información básica sin datos sensibles
+    const publicGroupsInfo = publicGroups.map(group => ({
+      id: group.id,
+      name: group.name,
+      description: group.description,
+      businessType: group.businessType,
+      currency: group.currency,
+      memberCount: group.members.length,
+      createdAt: group.createdAt,
+      creatorId: group.creatorId
+    }));
+
+    res.json({ groups: publicGroupsInfo });
+  } catch (error) {
+    console.error('Error obteniendo grupos públicos:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 // Unirse a grupo de venta
 router.post('/:groupId/join', async (req, res) => {
   try {
