@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// Obtener chats de un usuario
+// Obtener chats de un usuario (individuales y grupales)
 router.get('/:userId', (req, res) => {
   try {
     const { userId } = req.params;
