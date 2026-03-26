@@ -91,6 +91,7 @@ router.post('/create', (req, res) => {
     // Crear nuevo chat
     const newChat = {
       id: Date.now().toString(),
+      type: 'individual', // Agregar tipo para chats individuales
       participants: [userId1, userId2],
       createdAt: new Date().toISOString()
     };
