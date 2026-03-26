@@ -40,8 +40,8 @@ router.post('/create', async (req, res) => {
       unreadCount: 0,
       isPinned: true, // Los grupos de venta siempre están fijados
       salesGroupId: groupId,
-      businessType: businessType,
-      currency: currency,
+      businessType: businessType, // Puede contener múltiples tipos separados por coma
+      currency: currency, // Puede contener múltiples monedas separadas por coma
     };
 
     // Agregar al array global de chats
@@ -58,6 +58,8 @@ router.post('/create', async (req, res) => {
     }
 
     console.log('✅ Grupo de venta creado:', groupId, 'Chat ID:', chatId);
+    console.log('📋 Monedas:', currency);
+    console.log('🏢 Tipos de negocio:', businessType);
 
     const groupResponse = {
       id: groupId,
