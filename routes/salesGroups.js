@@ -10,15 +10,28 @@ router.post('/create', async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
 
-    const groupId = Date.now().toString();
+    // Verificar si el usuario ya tiene un grupo con el mismo nombre
+    const existingGroup = global.chats.find(chat => 
+      chat.type === 'salesGroup' && 
+      chat.participants && 
+      chat.participants[0] === creatorId &&
+      chat.name && 
+      chat.name.toLowerCase().trim() === name.toLowerCase().trim()
+    );
+
+    if (existingGroup) {
+      return res.status(409).json({ error: 'Ya tienes un grupo con ese nombre' });
+    }
+
+    const groupId = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
     const chatId = `group_${groupId}`;
 
     // Crear chat grupal asociado usando el sistema global
     const newGroupChat = {
       id: chatId,
       type: 'salesGroup',
-      name: name,
-      description: description || '',
+      name: name.trim(),
+      description: (description || '').trim(),
       participants: [creatorId],
       admins: [creatorId],
       createdAt: new Date().toISOString(),
@@ -33,25 +46,36 @@ router.post('/create', async (req, res) => {
 
     // Agregar al array global de chats
     global.chats.push(newGroupChat);
-    global.saveChats();
+    
+    // Guardar con manejo de errores
+    try {
+      global.saveChats();
+    } catch (saveError) {
+      console.error('❌ Error guardando chat:', saveError);
+      // Remover el chat si no se pudo guardar
+      global.chats = global.chats.filter(c => c.id !== chatId);
+      return res.status(500).json({ error: 'Error guardando el grupo' });
+    }
 
     console.log('✅ Grupo de venta creado:', groupId, 'Chat ID:', chatId);
 
-    res.json({ 
+    const groupResponse = {
+      id: groupId,
+      name: name.trim(),
+      description: (description || '').trim(),
+      currency,
+      businessType,
+      creatorId,
+      members: [creatorId],
+      admins: [creatorId],
+      createdAt: new Date().toISOString(),
+      isActive: true,
+      chatId: chatId,
+    };
+
+    res.status(201).json({ 
       success: true, 
-      group: {
-        id: groupId,
-        name,
-        description: description || '',
-        currency,
-        businessType,
-        creatorId,
-        members: [creatorId],
-        admins: [creatorId],
-        createdAt: new Date().toISOString(),
-        isActive: true,
-        chatId: chatId,
-      },
+      group: groupResponse,
       chat: newGroupChat 
     });
   } catch (error) {
