@@ -44,13 +44,13 @@ router.get('/:userId', (req, res) => {
         };
       }
       
-      // Si es un chat individual
+      // Si es un chat individual (o no tiene tipo definido - compatibilidad)
       const otherParticipant = chat.participants.find(p => p !== userId);
       const otherUser = global.users.find(u => u.id === otherParticipant);
       
       return {
         id: chat.id,
-        type: 'individual',
+        type: chat.type || 'individual', // Asegurar que siempre tenga tipo
         otherUser: otherUser ? {
           id: otherUser.id,
           name: otherUser.name,
