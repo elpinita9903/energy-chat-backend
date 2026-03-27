@@ -38,10 +38,10 @@ router.post('/create', async (req, res) => {
       lastMessage: null,
       lastMessageTime: new Date().toISOString(),
       unreadCount: 0,
-      isPinned: true, // Los grupos de venta siempre están fijados
+      isPinned: true,
       salesGroupId: groupId,
-      businessType: businessType, // Puede contener múltiples tipos separados por coma
-      currency: currency, // Puede contener múltiples monedas separadas por coma
+      businessType: businessType,
+      currency: currency,
     };
 
     // Agregar al array global de chats
@@ -51,15 +51,10 @@ router.post('/create', async (req, res) => {
     try {
       global.saveChats();
     } catch (saveError) {
-      console.error('❌ Error guardando chat:', saveError);
       // Remover el chat si no se pudo guardar
       global.chats = global.chats.filter(c => c.id !== chatId);
       return res.status(500).json({ error: 'Error guardando el grupo' });
     }
-
-    console.log('✅ Grupo de venta creado:', groupId, 'Chat ID:', chatId);
-    console.log('📋 Monedas:', currency);
-    console.log('🏢 Tipos de negocio:', businessType);
 
     const groupResponse = {
       id: groupId,
@@ -81,7 +76,6 @@ router.post('/create', async (req, res) => {
       chat: newGroupChat 
     });
   } catch (error) {
-    console.error('❌ Error creando grupo de venta:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -103,7 +97,7 @@ router.get('/user/:userId', async (req, res) => {
         description: chat.description,
         currency: chat.currency,
         businessType: chat.businessType,
-        creatorId: chat.participants[0], // El primer participante es el creador
+        creatorId: chat.participants[0],
         members: chat.participants,
         admins: chat.admins,
         createdAt: chat.createdAt,
@@ -113,7 +107,6 @@ router.get('/user/:userId', async (req, res) => {
 
     res.json({ groups: userGroups });
   } catch (error) {
-    console.error('❌ Error obteniendo grupos:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -127,7 +120,7 @@ router.get('/public/:userId', async (req, res) => {
     const publicGroups = global.chats
       .filter(chat => 
         chat.type === 'salesGroup' && 
-        chat.participants[0] === userId // El primer participante es el creador
+        chat.participants[0] === userId
       )
       .map(chat => ({
         id: chat.salesGroupId,
@@ -142,7 +135,6 @@ router.get('/public/:userId', async (req, res) => {
 
     res.json({ groups: publicGroups });
   } catch (error) {
-    console.error('❌ Error obteniendo grupos públicos:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -167,12 +159,10 @@ router.post('/:groupId/join', async (req, res) => {
     if (!chat.participants.includes(userId)) {
       chat.participants.push(userId);
       global.saveChats();
-      console.log('✅ Usuario', userId, 'se unió al grupo', groupId);
     }
 
     res.json({ success: true });
   } catch (error) {
-    console.error('❌ Error uniéndose al grupo:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -204,11 +194,9 @@ router.post('/:groupId/leave', async (req, res) => {
     }
 
     global.saveChats();
-    console.log('✅ Usuario', userId, 'salió del grupo', groupId);
 
     res.json({ success: true });
   } catch (error) {
-    console.error('❌ Error saliendo del grupo:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -243,7 +231,6 @@ router.get('/:groupId', async (req, res) => {
 
     res.json({ group });
   } catch (error) {
-    console.error('❌ Error obteniendo grupo:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

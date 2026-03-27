@@ -9,16 +9,32 @@ const JWT_SECRET = process.env.JWT_SECRET || 'energy-secret-key-2024';
 // Registro
 router.post('/register', async (req, res) => {
   try {
-    const { name, phone, password } = req.body;
+    const { name, phone, password, username, email } = req.body;
     
     if (!name || !phone || !password) {
-      return res.status(400).json({ message: 'Todos los campos son requeridos' });
+      return res.status(400).json({ message: 'Nombre, teléfono y contraseña son requeridos' });
     }
     
-    // Verificar si el usuario ya existe
+    // Verificar si el teléfono ya existe
     const existingUser = global.users.find(u => u.phone === phone);
     if (existingUser) {
       return res.status(400).json({ message: 'El teléfono ya está registrado' });
+    }
+    
+    // Verificar si el username ya existe (si se proporcionó)
+    if (username) {
+      const existingUsername = global.users.find(u => u.username === username);
+      if (existingUsername) {
+        return res.status(400).json({ message: 'El nombre de usuario ya está en uso' });
+      }
+    }
+    
+    // Verificar si el email ya existe (si se proporcionó)
+    if (email) {
+      const existingEmail = global.users.find(u => u.email === email);
+      if (existingEmail) {
+        return res.status(400).json({ message: 'El correo electrónico ya está registrado' });
+      }
     }
     
     // Encriptar contraseña
@@ -30,32 +46,30 @@ router.post('/register', async (req, res) => {
       name,
       phone,
       password: hashedPassword,
+      username: username || null,
+      email: email || null,
       avatar: null,
       catalog: [],
       createdAt: new Date().toISOString()
     };
     
     global.users.push(user);
-    global.saveUsers(); // Guardar automáticamente
-    
-    // Crear token
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET);
-    
-    console.log('✅ Usuario registrado:', user.name);
+    global.saveUsers();
     
     res.status(201).json({
-      message: 'Usuario registrado exitosamente',
-      token,
+      success: true,
+      message: 'Cuenta creada exitosamente',
       user: { 
         id: user.id, 
         name: user.name, 
         phone: user.phone,
+        username: user.username,
+        email: user.email,
         avatar: user.avatar
       }
     });
   } catch (error) {
-    console.error('❌ Error en registro:', error);
-    res.status(500).json({ message: 'Error del servidor' });
+    res.status(500).json({ success: false, message: 'Error del servidor' });
   }
 });
 
@@ -83,8 +97,6 @@ router.post('/login', async (req, res) => {
     // Crear token
     const token = jwt.sign({ userId: user.id }, JWT_SECRET);
     
-    console.log('✅ Usuario logueado:', user.name);
-    
     res.json({
       message: 'Login exitoso',
       token,
@@ -92,11 +104,12 @@ router.post('/login', async (req, res) => {
         id: user.id, 
         name: user.name, 
         phone: user.phone,
+        username: user.username,
+        email: user.email,
         avatar: user.avatar
       }
     });
   } catch (error) {
-    console.error('❌ Error en login:', error);
     res.status(500).json({ message: 'Error del servidor' });
   }
 });
@@ -106,13 +119,10 @@ router.post('/logout', (req, res) => {
   try {
     // En una implementación real, aquí invalidarías el token en una blacklist
     // Por ahora solo enviamos confirmación
-    console.log('✅ Usuario cerró sesión');
-    
     res.json({
       message: 'Sesión cerrada exitosamente'
     });
   } catch (error) {
-    console.error('❌ Error en logout:', error);
     res.status(500).json({ message: 'Error del servidor' });
   }
 });
