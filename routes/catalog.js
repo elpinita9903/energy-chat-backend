@@ -22,7 +22,7 @@ router.get('/:userId', (req, res) => {
 router.post('/:userId', (req, res) => {
   try {
     const { userId } = req.params;
-    const { name, description, price, image } = req.body;
+    const { name, description, price, image, category } = req.body;
     
     if (!name || !price) {
       return res.status(400).json({ message: 'Nombre y precio son requeridos' });
@@ -38,6 +38,7 @@ router.post('/:userId', (req, res) => {
       name,
       description: description || '',
       price: parseFloat(price),
+      category: category || 'Otros',
       image: image || null,
       createdAt: new Date().toISOString()
     };
@@ -45,7 +46,7 @@ router.post('/:userId', (req, res) => {
     user.catalog.push(product);
     global.saveUsers(); // Guardar automáticamente
     
-    console.log('✅ Producto agregado:', product.name);
+    console.log('✅ Producto agregado:', product.name, '- Categoría:', product.category);
     
     res.status(201).json({ 
       message: 'Producto agregado exitosamente',
