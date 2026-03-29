@@ -184,4 +184,106 @@ router.delete('/:userId/categories/:categoryId', (req, res) => {
   }
 });
 
+// Obtener zonas de domicilio de un usuario
+router.get('/:userId/delivery-zones', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = global.users.find(u => u.id === userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    // Inicializar zonas de domicilio si no existen
+    if (!user.deliveryZones) {
+      user.deliveryZones = [];
+    }
+    
+    res.json({ zones: user.deliveryZones });
+  } catch (error) {
+    console.error('❌ Error obteniendo zonas de domicilio:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+// Agregar zona de domicilio
+router.post('/:userId/delivery-zones', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, cost, currency } = req.body;
+    
+    if (!name || cost === undefined || !currency) {
+      return res.status(400).json({ message: 'Nombre, costo y moneda son requeridos' });
+    }
+    
+    const user = global.users.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    // Inicializar zonas de domicilio si no existen
+    if (!user.deliveryZones) {
+      user.deliveryZones = [];
+    }
+    
+    // Validar moneda
+    const validCurrencies = ['USD', 'EURO', 'CUP', 'ZELLE'];
+    if (!validCurrencies.includes(currency)) {
+      return res.status(400).json({ message: 'Moneda no válida' });
+    }
+    
+    const zone = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      cost: parseFloat(cost),
+      currency: currency,
+      createdAt: new Date().toISOString()
+    };
+    
+    user.deliveryZones.push(zone);
+    global.saveUsers();
+    
+    console.log('✅ Zona de domicilio agregada:', zone.name, '-', zone.cost, zone.currency);
+    
+    res.status(201).json({ 
+      message: 'Zona de domicilio agregada exitosamente',
+      zone 
+    });
+  } catch (error) {
+    console.error('❌ Error agregando zona de domicilio:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+// Eliminar zona de domicilio
+router.delete('/:userId/delivery-zones/:zoneId', (req, res) => {
+  try {
+    const { userId, zoneId } = req.params;
+    
+    const user = global.users.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    if (!user.deliveryZones) {
+      user.deliveryZones = [];
+    }
+    
+    const zoneIndex = user.deliveryZones.findIndex(z => z.id === zoneId);
+    if (zoneIndex === -1) {
+      return res.status(404).json({ message: 'Zona de domicilio no encontrada' });
+    }
+    
+    user.deliveryZones.splice(zoneIndex, 1);
+    global.saveUsers();
+    
+    console.log('✅ Zona de domicilio eliminada:', zoneId);
+    
+    res.json({ message: 'Zona de domicilio eliminada exitosamente' });
+  } catch (error) {
+    console.error('❌ Error eliminando zona de domicilio:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
 module.exports = router;
