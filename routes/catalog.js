@@ -85,4 +85,103 @@ router.delete('/:userId/:productId', (req, res) => {
   }
 });
 
+// Obtener categorías de un usuario
+router.get('/:userId/categories', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = global.users.find(u => u.id === userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    // Inicializar categorías si no existen
+    if (!user.categories) {
+      user.categories = [];
+    }
+    
+    res.json({ categories: user.categories });
+  } catch (error) {
+    console.error('❌ Error obteniendo categorías:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+// Agregar categoría
+router.post('/:userId/categories', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ message: 'El nombre de la categoría es requerido' });
+    }
+    
+    const user = global.users.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    // Inicializar categorías si no existen
+    if (!user.categories) {
+      user.categories = [];
+    }
+    
+    // Verificar si ya existe
+    if (user.categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
+      return res.status(400).json({ message: 'Esta categoría ya existe' });
+    }
+    
+    const category = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      createdAt: new Date().toISOString()
+    };
+    
+    user.categories.push(category);
+    global.saveUsers();
+    
+    console.log('✅ Categoría agregada:', category.name);
+    
+    res.status(201).json({ 
+      message: 'Categoría agregada exitosamente',
+      category 
+    });
+  } catch (error) {
+    console.error('❌ Error agregando categoría:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+// Eliminar categoría
+router.delete('/:userId/categories/:categoryId', (req, res) => {
+  try {
+    const { userId, categoryId } = req.params;
+    
+    const user = global.users.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    if (!user.categories) {
+      user.categories = [];
+    }
+    
+    const categoryIndex = user.categories.findIndex(c => c.id === categoryId);
+    if (categoryIndex === -1) {
+      return res.status(404).json({ message: 'Categoría no encontrada' });
+    }
+    
+    user.categories.splice(categoryIndex, 1);
+    global.saveUsers();
+    
+    console.log('✅ Categoría eliminada:', categoryId);
+    
+    res.json({ message: 'Categoría eliminada exitosamente' });
+  } catch (error) {
+    console.error('❌ Error eliminando categoría:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
 module.exports = router;
