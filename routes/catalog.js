@@ -286,4 +286,62 @@ router.delete('/:userId/delivery-zones/:zoneId', (req, res) => {
   }
 });
 
+// Obtener configuración de moneda
+router.get('/:userId/currency-config', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = global.users.find(u => u.id === userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    // Inicializar configuración de moneda si no existe (por defecto CUP)
+    if (!user.currencyConfig) {
+      user.currencyConfig = { currency: 'CUP' };
+    }
+    
+    res.json(user.currencyConfig);
+  } catch (error) {
+    console.error('❌ Error obteniendo configuración de moneda:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+// Establecer configuración de moneda
+router.post('/:userId/currency-config', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { currency } = req.body;
+    
+    if (!currency) {
+      return res.status(400).json({ message: 'La moneda es requerida' });
+    }
+    
+    const user = global.users.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    // Validar moneda
+    const validCurrencies = ['USD', 'EURO', 'CUP', 'ZELLE'];
+    if (!validCurrencies.includes(currency)) {
+      return res.status(400).json({ message: 'Moneda no válida' });
+    }
+    
+    user.currencyConfig = { currency };
+    global.saveUsers();
+    
+    console.log('✅ Configuración de moneda actualizada:', userId, '-', currency);
+    
+    res.json({ 
+      message: 'Configuración de moneda actualizada exitosamente',
+      currency 
+    });
+  } catch (error) {
+    console.error('❌ Error actualizando configuración de moneda:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
 module.exports = router;
