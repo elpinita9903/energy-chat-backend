@@ -8,7 +8,9 @@ router.get('/', (req, res) => {
       id: user.id,
       name: user.name,
       phone: user.phone,
-      avatar: user.avatar
+      avatar: user.avatar,
+      username: user.username,
+      email: user.email
     }));
     
     res.json({ users });
@@ -34,6 +36,8 @@ router.get('/:userId', (req, res) => {
         name: user.name,
         phone: user.phone,
         avatar: user.avatar,
+        username: user.username,
+        email: user.email,
         catalog: user.catalog
       }
     });
