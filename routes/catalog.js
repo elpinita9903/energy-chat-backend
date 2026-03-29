@@ -344,4 +344,97 @@ router.post('/:userId/currency-config', (req, res) => {
   }
 });
 
+// Obtener puntos de recogida
+router.get('/:userId/pickup-locations', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = global.users.find(u => u.id === userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    if (!user.pickupLocations) {
+      user.pickupLocations = [];
+    }
+    
+    res.json({ locations: user.pickupLocations });
+  } catch (error) {
+    console.error('❌ Error obteniendo puntos de recogida:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+// Agregar punto de recogida
+router.post('/:userId/pickup-locations', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, address } = req.body;
+    
+    if (!name || !address) {
+      return res.status(400).json({ message: 'Nombre y dirección son requeridos' });
+    }
+    
+    const user = global.users.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    if (!user.pickupLocations) {
+      user.pickupLocations = [];
+    }
+    
+    const location = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      address: address.trim(),
+      createdAt: new Date().toISOString()
+    };
+    
+    user.pickupLocations.push(location);
+    global.saveUsers();
+    
+    console.log('✅ Punto de recogida agregado:', location.name);
+    
+    res.status(201).json({ 
+      message: 'Punto de recogida agregado exitosamente',
+      location 
+    });
+  } catch (error) {
+    console.error('❌ Error agregando punto de recogida:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
+// Eliminar punto de recogida
+router.delete('/:userId/pickup-locations/:locationId', (req, res) => {
+  try {
+    const { userId, locationId } = req.params;
+    
+    const user = global.users.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    
+    if (!user.pickupLocations) {
+      user.pickupLocations = [];
+    }
+    
+    const locationIndex = user.pickupLocations.findIndex(l => l.id === locationId);
+    if (locationIndex === -1) {
+      return res.status(404).json({ message: 'Punto de recogida no encontrado' });
+    }
+    
+    user.pickupLocations.splice(locationIndex, 1);
+    global.saveUsers();
+    
+    console.log('✅ Punto de recogida eliminado:', locationId);
+    
+    res.json({ message: 'Punto de recogida eliminado exitosamente' });
+  } catch (error) {
+    console.error('❌ Error eliminando punto de recogida:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+});
+
 module.exports = router;
