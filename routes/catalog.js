@@ -22,10 +22,14 @@ router.get('/:userId', (req, res) => {
 router.post('/:userId', (req, res) => {
   try {
     const { userId } = req.params;
-    const { name, description, price, image, category } = req.body;
+    const { name, description, price, image, category, unit, stock, lowStockAlert, lowStockThreshold } = req.body;
     
     if (!name || !price) {
       return res.status(400).json({ message: 'Nombre y precio son requeridos' });
+    }
+    
+    if (!unit) {
+      return res.status(400).json({ message: 'La unidad de medida es requerida' });
     }
     
     const user = global.users.find(u => u.id === userId);
@@ -39,6 +43,10 @@ router.post('/:userId', (req, res) => {
       description: description || '',
       price: parseFloat(price),
       category: category || 'Otros',
+      unit: unit,
+      stock: stock !== null && stock !== undefined ? parseInt(stock) : null,
+      lowStockAlert: lowStockAlert || false,
+      lowStockThreshold: lowStockThreshold !== null && lowStockThreshold !== undefined ? parseInt(lowStockThreshold) : null,
       image: image || null,
       createdAt: new Date().toISOString()
     };
@@ -46,7 +54,7 @@ router.post('/:userId', (req, res) => {
     user.catalog.push(product);
     global.saveUsers(); // Guardar automáticamente
     
-    console.log('✅ Producto agregado:', product.name, '- Categoría:', product.category);
+    console.log('✅ Producto agregado:', product.name, '- Categoría:', product.category, '- Unidad:', product.unit, '- Stock:', product.stock);
     
     res.status(201).json({ 
       message: 'Producto agregado exitosamente',
