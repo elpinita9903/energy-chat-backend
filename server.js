@@ -77,7 +77,8 @@ app.get('/', (req, res) => {
       auth: '/api/auth/register, /api/auth/login',
       users: '/api/users',
       chats: '/api/chats',
-      catalog: '/api/catalog'
+      catalog: '/api/catalog',
+      cart: '/api/cart'
     }
   });
 });
@@ -88,6 +89,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/chats', require('./routes/chats'));
 app.use('/api/catalog', require('./routes/catalog'));
 app.use('/api/sales-groups', require('./routes/salesGroups'));
+app.use('/api/cart', require('./routes/cart'));
 
 // Socket.io para chat en tiempo real
 const connectedUsers = new Map(); // Rastrear usuarios conectados
